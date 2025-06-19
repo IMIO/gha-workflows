@@ -1,0 +1,84 @@
+name: Test package
+
+on:
+  workflow_call:
+    inputs:
+      buildout_command:
+        description: 'Command to run buildout'
+        type: string
+        required: true
+        default: ".venv/bin/buildout"
+      buildout_config_file:
+        description: 'Buildout configuration file'
+        type: string
+        required: true
+        default: "buildout.cfg"
+      buildout_options:
+        description: 'Options to pass to buildout'
+        type: string
+        required: false
+        default: ""
+      continue_on_error:
+        description: 'Continue on error'
+        type: boolean
+        required: false
+        default: false
+      matrix_experimental:
+        description: 'Experimental matrix'
+        type: boolean
+        required: false
+        default: false
+      plone_version:
+        description: 'Plone version'
+        type: string
+        required: false
+        default: "6.1"
+      python_version:
+        description: 'Python version'
+        required: false
+        type: string
+        default: "3.13"
+      runner_label:
+        description: 'Runner label'
+        type: string
+        required: true
+      soffice:
+        description: 'Launch soffice'
+        required: false
+        type: boolean
+        default: true
+      test_command:
+        description: 'Test command'
+        required: false
+        type: string
+        default: 'bin/test'
+    secrets:
+        mattermost_webhook_url:
+          description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
+          required: false
+
+jobs:
+  test:
+    runs-on: ${{ inputs.runner_label }}
+    continue-on-error: ${{ inputs.continue_on_error }}
+    if: ${{ !github.event_name == 'pull_request' || !github.event.pull_request.draft }}
+    steps:
+      - name: Launch soffice
+        if: ${{ inputs.soffice }}
+        run: soffice '--accept=socket,host=0.0.0.0,port=2002;urp;StarOffice.ServiceManager' --nologo --headless --nofirststartwizard --norestore &
+        shell: bash
+      - name: Run tests
+        uses: IMIO/gha/plone-package-test-notify@reusable-workflows
+        env:
+          cache-name: cache-eggs
+        with:
+          BUILDOUT_COMMAND: ${{ inputs.buildout_command }}
+          BUILDOUT_CONFIG_FILE: ${{ inputs.buildout_config_file }}
+          BUILDOUT_OPTIONS: ${{ inputs.buildout_options }}
+          CACHE_KEY: ${{ runner.os }}-build-${{ env.cache-name }}-${{ inputs.python_version }}
+          INSTALL_DEPENDENCIES_COMMANDS: |
+            uv venv --python ${{ inputs.python_version }} --managed-python
+            uv pip install -r requirements_${{ inputs.plone_version }}.txt
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
+          PYTHON_VERSION: ${{ inputs.python_version }}
+          TEST_COMMAND: ${{ inputs.test_command }}
