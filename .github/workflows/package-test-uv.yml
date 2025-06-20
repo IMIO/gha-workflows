@@ -38,6 +38,11 @@ on:
         required: false
         type: string
         default: "3.13"
+      requirements_file:
+        description: 'Requirements file'
+        type: string
+        required: true
+        default: "requirements.txt"
       runner_label:
         description: 'Runner label'
         type: string
@@ -78,7 +83,7 @@ jobs:
           CACHE_KEY: ${{ runner.os }}-build-${{ env.cache-name }}-${{ inputs.python_version }}
           INSTALL_DEPENDENCIES_COMMANDS: |
             uv venv --python ${{ inputs.python_version }} --managed-python
-            uv pip install -r requirements_${{ inputs.plone_version }}.txt
+            uv pip install -r ${{ inputs.requirements_file }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           TEST_COMMAND: ${{ inputs.test_command }}
