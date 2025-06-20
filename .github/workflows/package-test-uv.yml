@@ -6,12 +6,12 @@ on:
       buildout_command:
         description: 'Command to run buildout'
         type: string
-        required: true
+        required: false
         default: ".venv/bin/buildout"
       buildout_config_file:
         description: 'Buildout configuration file'
         type: string
-        required: true
+        required: false
         default: "buildout.cfg"
       buildout_options:
         description: 'Options to pass to buildout'
@@ -35,18 +35,18 @@ on:
         default: "6.1"
       python_version:
         description: 'Python version'
-        required: true
+        required: false
         type: string
         default: "3.13"
       requirements_file:
         description: 'Requirements file'
         type: string
-        required: true
+        required: false
         default: "requirements.txt"
       runner_label:
         description: 'Runner label'
         type: string
-        required: true
+        required: false
         default: "ubuntu-latest"
       soffice:
         description: 'Launch soffice'

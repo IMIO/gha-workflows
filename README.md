@@ -10,15 +10,15 @@ Test a Plone package. Test environment is bootstrapped using uv and buildout.
 
 | Name                  | Type     | Required | Default              | Description                                                                 |
 |-----------------------|----------|----------|----------------------|-----------------------------------------------------------------------------|
-| buildout_command      | string   | Yes      | .venv/bin/buildout   | Command to run buildout                                                     |
-| buildout_config_file  | string   | Yes      | buildout.cfg         | Buildout configuration file to use                                          |
+| buildout_command      | string   | No      | .venv/bin/buildout   | Command to run buildout                                                     |
+| buildout_config_file  | string   | No      | buildout.cfg         | Buildout configuration file to use                                          |
 | buildout_options      | string   | No       | (empty)              | Additional options to pass to buildout                                      |
 | continue_on_error     | boolean  | No       | false                | Continue on error                                                           |
 | matrix_experimental   | boolean  | No       | false                | Enable experimental matrix                                                  |
 | plone_version         | string   | No       | 6.1                  | Plone version to use                                                        |
-| python_version        | string   | Yes       | 3.13                 | Python version to use                                                       |
-| requirements_file     | string   | Yes      | requirements.txt     | Requirements file to use for dependency installation                        |
-| runner_label          | string   | Yes      | (none)               | GitHub Actions runner label to use                                          |
+| python_version        | string   | No       | 3.13                 | Python version to use                                                       |
+| requirements_file     | string   | No      | requirements.txt     | Requirements file to use for dependency installation                        |
+| runner_label          | string   | No      | (none)               | GitHub Actions runner label to use                                          |
 | soffice               | boolean  | No       | false                 | Launch soffice (LibreOffice in service mode)                                |
 | test_command          | string   | No       | bin/test             | Command to run tests                                                        |
 
