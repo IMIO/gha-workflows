@@ -91,7 +91,7 @@ jobs:
         run: echo "DEPLOY_DATE=$(date --date='${{ inputs.schedule_time }} tomorrow' +'%Y-%m-%dT%H:%M:%S%z')" >> $GITHUB_ENV
       - name: Deploy to production and notify (tonight)
         if: endsWith(github.ref, '-quick') == false
-        uses: IMIO/gha/rundeck-notify@v3.5
+        uses: IMIO/gha/rundeck-notify@v5
         with:
           RUNDECK_URL: ${{ secrets.rundeck_url }}
           RUNDECK_TOKEN: ${{ secrets.rundeck_token }}
@@ -100,7 +100,7 @@ jobs:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
       - name: Deploy to production and notify (now - quick release)
         if: endsWith(github.ref, '-quick')
-        uses: IMIO/gha/rundeck-notify@v3.5
+        uses: IMIO/gha/rundeck-notify@v5
         with:
           RUNDECK_URL: ${{ secrets.rundeck_url }}
           RUNDECK_TOKEN: ${{ secrets.rundeck_token }}
