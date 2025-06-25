@@ -74,11 +74,11 @@ It also runs a Rundeck job to deploy the image to the specified node.
 | image_tag_staging     | string   | Yes      | —            | Tag of the Docker image in staging                       |
 | image_tag_production  | string   | Yes      | —            | Tag of the Docker image in production                    |
 | rundeck_job_id        | string   | Yes      | —            | ID of the Rundeck job to run for deployment              |
-| node_name             | string   | Yes      | —            | Name of the node to deploy to                            |
+| node_name             | string   | No       | —            | Name of the node to deploy to                            |
 | quick_release         | boolean  | No       | false        | Whether this is a quick release                          |
 | runner_label          | string   | No       | gha-runners  | Label for the GitHub runner to use                       |
 | schedule_time         | string   | No       | 03:00        | Time to schedule the deployment tomorrow (e.g., "03:00") |
-| service_name          | string   | Yes      | —            | Name of the service being deployed                       |
+| service_name          | string   | No       | —            | Name of the service being deployed                       |
 
 **Secrets**:
 
