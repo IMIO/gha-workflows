@@ -56,3 +56,63 @@ test:
       python_version: ${{ matrix.python_version }}
       requirements_file: requirements_${{ matrix.plone_version }}.txt
 ```
+
+## promote-staging-to-production.yml
+
+This workflow promotes a Docker image from staging to production and deploys it using Rundeck.
+
+It tags the image in the registry and notifies via Mattermost.
+
+It also runs a Rundeck job to deploy the image to the specified node.
+
+### Inputs
+
+| Name                  | Type     | Required | Default      | Description                                              |
+|-----------------------|----------|----------|--------------|----------------------------------------------------------|
+| github_environment    | string   | No       | production   | GitHub environment to use for the job                    |
+| image_name            | string   | Yes      | —            | Name of the Docker image                                 |
+| image_tag_staging     | string   | Yes      | —            | Tag of the Docker image in staging                       |
+| image_tag_production  | string   | Yes      | —            | Tag of the Docker image in production                    |
+| rundeck_job_id        | string   | Yes      | —            | ID of the Rundeck job to run for deployment              |
+| node_name             | string   | Yes      | —            | Name of the node to deploy to                            |
+| quick_release         | boolean  | No       | false        | Whether this is a quick release                          |
+| runner_label          | string   | No       | gha-runners  | Label for the GitHub runner to use                       |
+| schedule_time         | string   | No       | 03:00        | Time to schedule the deployment tomorrow (e.g., "03:00") |
+| service_name          | string   | Yes      | —            | Name of the service being deployed                       |
+
+**Secrets**:
+
+| Name                    | Required | Description                                 |
+|-------------------------|----------|---------------------------------------------|
+| mattermost_webhook_url  | No       | Webhook URL for Mattermost notifications    |
+| registry_url            | Yes      | URL of the registry                         |
+| registry_username       | Yes      | Username for the registry                   |
+| registry_password       | Yes      | Password for the registry                   |
+| rundeck_url             | Yes      | URL of the Rundeck server                   |
+| rundeck_token           | Yes      | Token for the Rundeck server                |
+
+
+### Example of usage
+
+```yaml
+jobs:
+  promote-staging-to-production:
+    uses: IMIO/gha-workflows/.github/workflows/promote-staging-to-production.yml@main
+    with:
+      github_environment: production
+      image_name: myapp
+      image_tag_staging: staging
+      image_tag_production: latest
+      rundeck_job_id: 5b7c2640-1234-4b52-abcd-32745b326cd1
+      node_name: 'mynode01.lan'
+      runner_label: ubuntu-latest
+      schedule_time: '03:00'
+      service_name: myappservice
+      quick_release: true
+    secrets:
+      registry_url: ${{ secrets.HARBOR_URL }}
+      registry_username: ${{ secrets.HARBOR_USERNAME }}
+      registry_password: ${{ secrets.HARBOR_PASSWORD }}
+      rundeck_url: ${{ secrets.RUNDECK_URL }}
+      rundeck_token: ${{ secrets.RUNDECK_TOKEN }}
+```
