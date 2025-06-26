@@ -26,10 +26,6 @@ on:
         description: 'ID of the Rundeck job to run for deployment'
         type: string
         required: true
-      node_name:
-        description: 'Name of the node to deploy to'
-        type: string
-        required: false
       quick_release:
         description: 'Whether this is a quick release'
         type: boolean
@@ -106,8 +102,8 @@ jobs:
           RUNDECK_JOB_ID: ${{ inputs.rundeck_job_id }}
           RUNDECK_PARAMETERS: >-
             -F "runAtTime=${{ env.DEPLOY_DATE }}"
-            ${{ inputs.node_name && format(' -F "filter=name {0}" ', inputs.node_name) || '' }}
-            ${{ inputs.image_tag_production && format(' -F "option.tag={0}" ', inputs.image_tag_production) || '' }}
-            ${{ inputs.image_name && format(' -F "option.image_name={0}" ', inputs.image_name) || '' }}
-            ${{ inputs.service_name && format(' -F "option.service_name={0}"', inputs.service_name) || '' }}
+            ${{ vars.NODE_NAME && format('-F "filter=name {0}" ', vars.NODE_NAME) || '' }}
+            ${{ inputs.image_tag_production && format('-F "option.tag={0}" ', inputs.image_tag_production) || '' }}
+            ${{ inputs.image_name && format('-F "option.image_name={0}" ', inputs.image_name) || '' }}
+            ${{ inputs.service_name && format('-F "option.service_name={0}"', inputs.service_name) || '' }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}

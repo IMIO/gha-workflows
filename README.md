@@ -61,7 +61,7 @@ test:
 
 This workflow promotes a Docker image from staging to production and deploys it using Rundeck.
 
-It tags the image in the registry and notifies via Mattermost.
+It tags the specified Docker image in the registry and notifies via Mattermost.
 
 It also runs a Rundeck job to deploy the image to the specified node.
 
@@ -74,11 +74,13 @@ It also runs a Rundeck job to deploy the image to the specified node.
 | image_tag_staging     | string   | Yes      | —            | Tag of the Docker image in staging                       |
 | image_tag_production  | string   | Yes      | —            | Tag of the Docker image in production                    |
 | rundeck_job_id        | string   | Yes      | —            | ID of the Rundeck job to run for deployment              |
-| node_name             | string   | No       | —            | Name of the node to deploy to                            |
 | quick_release         | boolean  | No       | false        | Whether this is a quick release                          |
 | runner_label          | string   | No       | gha-runners  | Label for the GitHub runner to use                       |
 | schedule_time         | string   | No       | 03:00        | Time to schedule the deployment tomorrow (e.g., "03:00") |
 | service_name          | string   | No       | —            | Name of the service being deployed                       |
+
+> [!NOTE]
+> If your RunDeck job needs to specify nodes (it's the case for a job where nodes are not checked by default), you can specify nodes by [setting a GitHub environment variable called NODE_NAME](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment#environment-variables). Multiple nodes can be specified, separated by commas (e.g., node1.lan,node2.lan).
 
 **Secrets**:
 
@@ -90,6 +92,7 @@ It also runs a Rundeck job to deploy the image to the specified node.
 | registry_password       | Yes      | Password for the registry                   |
 | rundeck_url             | Yes      | URL of the Rundeck server                   |
 | rundeck_token           | Yes      | Token for the Rundeck server                |
+
 
 
 ### Example of usage
@@ -104,9 +107,8 @@ jobs:
       image_tag_staging: staging
       image_tag_production: latest
       rundeck_job_id: 5b7c2640-1234-4b52-abcd-32745b326cd1
-      node_name: 'mynode01.lan'
       runner_label: ubuntu-latest
-      schedule_time: '03:00'
+      schedule_time: '02:00'
       service_name: myappservice
       quick_release: true
     secrets:
