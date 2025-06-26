@@ -94,11 +94,6 @@ jobs:
       - name: Get deployment date (quick release schedule)
         if: endsWith(github.ref, '-quick') || inputs.quick_release == true
         run: echo "DEPLOY_DATE=$(date --date='2 minutes' +'%Y-%m-%dT%H:%M:%S%z')" >> $GITHUB_ENV
-      - name: Display environment variables values
-        run: |
-          echo "Environment variables:"
-          echo "DEPLOY_DATE=${{ env.DEPLOY_DATE }}"
-          echo "NODE_NAME=${{ vars.NODE_NAME }}"
       - name: Deploy to production and notify
         uses: IMIO/gha/rundeck-notify@v5
         with:
