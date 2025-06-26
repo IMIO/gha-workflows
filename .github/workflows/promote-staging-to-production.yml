@@ -94,6 +94,11 @@ jobs:
       - name: Get deployment date (quick release schedule)
         if: endsWith(github.ref, '-quick') || inputs.quick_release == true
         run: echo "DEPLOY_DATE=$(date --date='2 minutes' +'%Y-%m-%dT%H:%M:%S%z')" >> $GITHUB_ENV
+      - name: Display environment variables values
+        run: |
+          echo "Environment variables:"
+          echo "DEPLOY_DATE=${{ env.DEPLOY_DATE }}"
+          echo "NODE_NAME=${{ vars.NODE_NAME }}"
       - name: Deploy to production and notify
         uses: IMIO/gha/rundeck-notify@v5
         with:
@@ -102,8 +107,8 @@ jobs:
           RUNDECK_JOB_ID: ${{ inputs.rundeck_job_id }}
           RUNDECK_PARAMETERS: >-
             -F "runAtTime=${{ env.DEPLOY_DATE }}"
-            ${{ env.NODE_NAME && format(' -F "filter=name {0}" ', env.NODE_NAME) || '' }}
-            ${{ inputs.image_tag_production && format(' -F "option.tag={0}" ', inputs.image_tag_production) || '' }}
-            ${{ inputs.image_name && format(' -F "option.image_name={0}" ', inputs.image_name) || '' }}
-            ${{ inputs.service_name && format(' -F "option.service_name={0}"', inputs.service_name) || '' }}
+            ${{ vars.NODE_NAME && format('-F "filter=name {0}" ', vars.NODE_NAME) || '' }}
+            ${{ inputs.image_tag_production && format('-F "option.tag={0}" ', inputs.image_tag_production) || '' }}
+            ${{ inputs.image_name && format('-F "option.image_name={0}" ', inputs.image_name) || '' }}
+            ${{ inputs.service_name && format('-F "option.service_name={0}"', inputs.service_name) || '' }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
