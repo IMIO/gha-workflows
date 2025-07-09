@@ -32,7 +32,7 @@ jobs:
   release-helm-chart:
     uses: IMIO/gha-workflows/.github/workflows/helm-release.yml@main
     with:
-      helm_version: '3.12.3'
+      helm_version: '3.18.4'
       index_dir: '.'
       charts_dir: '.'
       target_dir: 'test'
@@ -70,7 +70,7 @@ jobs:
     uses: IMIO/gha-workflows/.github/workflows/helm-test.yml@main
     with:
       python_version: '3.10'
-      helm_version: 'v3.12.3'
+      helm_version: 'v3.18.4'
       helm_release: 'test'
       helm_namespace: 'test'
     secrets:
