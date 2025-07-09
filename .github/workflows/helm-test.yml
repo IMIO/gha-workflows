@@ -1,0 +1,47 @@
+name: Lint and Test Helm Chart
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        description: 'Python version to use'
+        type: string
+        required: false
+        default: '3.10'
+      helm_version:
+        description: 'Helm version to use'
+        type: string
+        required: false
+        default: 'v3.18.4'
+      helm_release:
+        description: 'Helm release name'
+        type: string
+        required: false
+        default: 'test'
+      helm_namespace:
+        description: 'Helm namespace name'
+        type: string
+        required: false
+        default: 'test'
+      runner_label:
+        description: 'Label for the GitHub runner to use'
+        type: string
+        required: false
+        default: ubuntu-latest
+    secrets:
+      mattermost_webhook_url:
+        description: 'Webhook URL for Mattermost notifications'
+        required: false
+
+jobs:
+  helm-test:
+    runs-on: ${{ inputs.runner_label }}
+    steps:
+      - name: Lint and Test Helm Chart and Notify
+        uses: IMIO/gha/helm-test-notify@v5
+        with:
+          PYTHON_VERSION: ${{ inputs.python_version }}
+          HELM_VERSION: ${{ inputs.helm_version }}
+          HELM_RELEASE: ${{ inputs.helm_release }}
+          HELM_NAMESPACE: ${{ inputs.helm_namespace }}
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}

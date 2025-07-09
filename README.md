@@ -2,6 +2,81 @@
 
 This repository hosts a set of custom reusable github actions workflows.
 
+## helm-release.yml
+
+Release a Helm chart to a GitHub Pages Helm repository and send notifications via Mattermost.
+
+### Inputs
+
+| Name              | Type    | Required | Default    | Description                                              |
+|-------------------|---------|----------|-------------|----------------------------------------------------------|
+| helm_version      | string  | No       | 3.18.4      | Helm version to use                                      |
+| helm_dependencies | string  | No       | —           | Helm dependencies                                        |
+| index_dir         | string  | No       | .           | Index directory                                          |
+| charts_dir        | string  | No       | .           | Charts directory                                         |
+| target_dir        | string  | No       | test        | Target directory to release                              |
+| app_id            | string  | Yes      | —           | GitHub App ID                                            |
+| private_key       | string  | Yes      | —           | GitHub App private key                                   |
+| runner_label      | string  | No       | ubuntu-latest | GitHub Actions runner label to use                    |
+
+**Secrets**:
+
+| Name                    | Required | Description                                 |
+|-------------------------|----------|---------------------------------------------|
+| mattermost_webhook_url  | No       | Webhook URL for Mattermost notifications    |
+
+### Example of usage
+
+```yaml
+jobs:
+  release-helm-chart:
+    uses: IMIO/gha-workflows/.github/workflows/helm-release.yml@main
+    with:
+      helm_version: '3.12.3'
+      index_dir: '.'
+      charts_dir: '.'
+      target_dir: 'test'
+      app_id: ${{ secrets.APP_ID }}
+      private_key: ${{ secrets.PRIVATE_KEY }}
+    secrets:
+      mattermost_webhook_url: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+```
+
+## helm-test.yml
+
+Lint and test a Helm chart and send notifications via Mattermost.
+
+### Inputs
+
+| Name           | Type    | Required | Default    | Description                                              |
+|----------------|---------|----------|-------------|----------------------------------------------------------|
+| python_version | string  | No       | 3.10        | Python version to use                                    |
+| helm_version   | string  | No       | v3.18.4     | Helm version to use                                      |
+| helm_release   | string  | No       | test         | Helm release name                                        |
+| helm_namespace | string  | No       | test         | Helm namespace name                                      |
+| runner_label   | string  | No       | ubuntu-latest | GitHub Actions runner label to use                    |
+
+**Secrets**:
+
+| Name                    | Required | Description                                 |
+|-------------------------|----------|---------------------------------------------|
+| mattermost_webhook_url  | No       | Webhook URL for Mattermost notifications    |
+
+### Example of usage
+
+```yaml
+jobs:
+  helm-test:
+    uses: IMIO/gha-workflows/.github/workflows/helm-test.yml@main
+    with:
+      python_version: '3.10'
+      helm_version: 'v3.12.3'
+      helm_release: 'test'
+      helm_namespace: 'test'
+    secrets:
+      mattermost_webhook_url: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+```
+
 ## package-test-uv.yml
 
 Test a Plone package. Test environment is bootstrapped using uv and buildout.
@@ -11,14 +86,14 @@ Test a Plone package. Test environment is bootstrapped using uv and buildout.
 | Name                  | Type     | Required | Default              | Description                                                                 |
 |-----------------------|----------|----------|----------------------|-----------------------------------------------------------------------------|
 | buildout_command      | string   | No      | .venv/bin/buildout   | Command to run buildout                                                     |
-| buildout_config_file  | string   | No      | buildout.cfg         | Buildout configuration file to use                                          |
+| buildout_config_file  | string   | No       | buildout.cfg         | Buildout configuration file to use                                          |
 | buildout_options      | string   | No       | (empty)              | Additional options to pass to buildout                                      |
 | continue_on_error     | boolean  | No       | false                | Continue on error                                                           |
 | matrix_experimental   | boolean  | No       | false                | Enable experimental matrix                                                  |
 | plone_version         | string   | No       | 6.1                  | Plone version to use                                                        |
 | python_version        | string   | No       | 3.13                 | Python version to use                                                       |
-| requirements_file     | string   | No      | requirements.txt     | Requirements file to use for dependency installation                        |
-| runner_label          | string   | No      | (none)               | GitHub Actions runner label to use                                          |
+| requirements_file     | string   | No       | requirements.txt     | Requirements file to use for dependency installation                        |
+| runner_label          | string   | No       | (none)               | GitHub Actions runner label to use                                          |
 | soffice               | boolean  | No       | false                 | Launch soffice (LibreOffice in service mode)                                |
 | test_command          | string   | No       | bin/test             | Command to run tests                                                        |
 
@@ -118,3 +193,4 @@ jobs:
       rundeck_url: ${{ secrets.RUNDECK_URL }}
       rundeck_token: ${{ secrets.RUNDECK_TOKEN }}
 ```
+

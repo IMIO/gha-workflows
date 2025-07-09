@@ -1,0 +1,64 @@
+name: Release Helm Chart
+
+on:
+  workflow_call:
+    inputs:
+      helm_version:
+        description: 'Helm version to use'
+        type: string
+        required: false
+        default: '3.18.4'
+      helm_dependencies:
+        description: 'Helm dependencies'
+        type: string
+        required: false
+      index_dir:
+        description: 'Index directory'
+        type: string
+        required: false
+        default: '.'
+      charts_dir:
+        description: 'Charts directory'
+        type: string
+        required: false
+        default: '.'
+      target_dir:
+        description: 'Target directory to release'
+        type: string
+        required: false
+        default: 'test'
+      app_id:
+        description: 'GitHub App ID'
+        type: string
+        required: true
+      private_key:
+        description: 'GitHub App private key'
+        type: string
+        required: true
+      runner_label:
+        description: 'Label for the GitHub runner to use'
+        type: string
+        required: false
+        default: ubuntu-latest
+    secrets:
+      mattermost_webhook_url:
+        description: 'Webhook URL for Mattermost notifications'
+        required: false
+
+jobs:
+  release-helm-chart:
+    permissions:
+      contents: write
+    runs-on: ${{ inputs.runner_label }}
+    steps:
+      - name: Release Helm Chart and Notify
+        uses: IMIO/gha/helm-release-notify@v5
+        with:
+          HELM_VERSION: ${{ inputs.helm_version }}
+          HELM_DEPENDENCIES: ${{ inputs.helm_dependencies }}
+          INDEX_DIR: ${{ inputs.index_dir }}
+          CHARTS_DIR: ${{ inputs.charts_dir }}
+          TARGET_DIR: ${{ inputs.target_dir }}
+          APP_ID: ${{ inputs.app_id }}
+          PRIVATE_KEY: ${{ inputs.private_key }}
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
