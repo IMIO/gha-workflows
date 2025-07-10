@@ -57,7 +57,7 @@ on:
         description: 'Test command'
         required: false
         type: string
-        default: 'coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
+        default: 'uvx coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
       upload_to_coveralls:
         description: 'Upload coverage report to coveralls'
         type: boolean

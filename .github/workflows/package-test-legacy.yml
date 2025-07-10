@@ -78,5 +78,4 @@ jobs:
           INSTALL_DEPENDENCIES_COMMANDS: |
             sudo pip install -r ${{ inputs.requirements_file }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
-          PYTHON_VERSION: ${{ inputs.python_version }}
           TEST_COMMAND: ${{ inputs.test_command }}
