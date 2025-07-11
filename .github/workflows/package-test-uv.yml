@@ -58,6 +58,11 @@ on:
         required: false
         type: string
         default: 'bin/test'
+      uv_version:
+        description: 'uv version'
+        type: string
+        required: false
+        default: "0.7.20"
     secrets:
         mattermost_webhook_url:
           description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
@@ -88,3 +93,4 @@ jobs:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           TEST_COMMAND: ${{ inputs.test_command }}
+          UV_VERSION: ${{ inputs.uv_version }}
