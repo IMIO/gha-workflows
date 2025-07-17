@@ -1,0 +1,47 @@
+name: Create release
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release pushed tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get changelog from CHANGELOG.md
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          echo "Tag: $tag"
+          changelog=$(awk "/^## \[$tag\]/{flag=1;next}/^## /{flag=0}flag" CHANGELOG.md)
+          echo "$changelog" > NOTES.md
+          cat NOTES.md
+      - name: Create release
+        if: ${{ !env.ACT }} # do not run locally
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="$tag" \
+              -F NOTES.md
+      - name: Get Main version
+        id: vars
+        run: |
+          main_version=$(echo ${{ github.ref_name }} | cut -d '.' -f 1)
+          echo "Main version: $main_version"
+          echo "main_version=$main_version" >> "$GITHUB_OUTPUT"
+      - name: Update Main version
+        if: ${{ !env.ACT }} # do not run locally
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -f ${{ steps.vars.outputs.main_version }} ${{ github.ref_name }}
+          git push origin ${{ steps.vars.outputs.main_version }} --force
