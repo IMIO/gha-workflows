@@ -159,3 +159,39 @@ test:
       python_version: 2.7
       requirements_file: requirements.txt
 ```
+
+## package-test-coverage.yml
+
+Test a Plone package and generate a coverage report. Test environment is bootstrapped using [uv](https://github.com/astral-sh/uv) and [buildout](https://github.com/buildout/buildout). Optionally uploads the coverage report to Coveralls.
+
+### Inputs
+
+| Name                  | Type     | Required | Default                                                      | Description                                                      |
+|-----------------------|----------|----------|--------------------------------------------------------------|------------------------------------------------------------------|
+| buildout_command      | string   | No       | .venv/bin/buildout                                           | Command to run buildout                                           |
+| buildout_config_file  | string   | No       | buildout.cfg                                                 | Buildout configuration file to use                                |
+| buildout_options      | string   | No       | (empty)                                                      | Additional options to pass to buildout                            |
+| continue_on_error     | boolean  | No       | false                                                        | Continue on error                                                 |
+| matrix_experimental   | boolean  | No       | false                                                        | Enable experimental matrix                                        |
+| plone_version         | string   | No       | 6.1                                                          | Plone version to use                                              |
+| python_version        | string   | No       | 3.13                                                         | Python version to use                                             |
+| requirements_file     | string   | No       | requirements.txt                                              | Requirements file to use for dependency installation              |
+| runner_label          | string   | No       | ubuntu-latest                                                 | GitHub Actions runner label to use                                |
+| soffice               | boolean  | No       | false                                                        | Launch soffice (LibreOffice in service mode)                      |
+| test_command          | string   | No       | uvx coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY   | Command to run tests with coverage                                |
+| upload_to_coveralls   | boolean  | No       | false                                                        | Upload coverage report to Coveralls                               |
+
+**Secrets**:
+
+| Name                    | Required | Description                                                                 |
+|-------------------------|----------|-----------------------------------------------------------------------------|
+| mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
+
+### Example of usage
+
+```yaml
+test:
+    uses: IMIO/gha-workflows/.github/workflows/package-test-coverage.yml@main
+    with:
+      upload_to_coveralls: true
+```
