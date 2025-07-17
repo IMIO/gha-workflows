@@ -80,7 +80,7 @@ jobs:
             echo INSTALL_SYSTEM_DEPENDENCIES="sudo apt-get install -y ${{ inputs.system_dependencies }}" >> $GITHUB_ENV
           fi
       - name: Run tests
-        uses: IMIO/gha/plone-package-test-notify@reusable-workflows
+        uses: IMIO/gha/plone-package-test-notify@v5
         env:
           cache-name: cache-eggs
         with:
