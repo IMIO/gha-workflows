@@ -22,7 +22,7 @@ on:
         description: 'Continue on error'
         type: boolean
         required: false
-        default: true
+        default: false
       python_version:
         description: 'Python version'
         required: false
@@ -43,21 +43,16 @@ on:
         required: false
         type: boolean
         default: false
-      system_dependencies:
-        description: 'System dependencies to install'
-        type: string
-        required: false
-        default: ""
       test_command:
         description: 'Test command'
         required: false
         type: string
-        default: 'bin/test'
-      uv_version:
-        description: 'uv version'
-        type: string
+        default: 'uvx coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
+      upload_to_coveralls:
+        description: 'Upload coverage report to coveralls'
+        type: boolean
         required: false
-        default: "0.7.20"
+        default: false
     secrets:
         mattermost_webhook_url:
           description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
@@ -73,12 +68,6 @@ jobs:
         if: ${{ inputs.soffice }}
         run: soffice '--accept=socket,host=0.0.0.0,port=2002;urp;StarOffice.ServiceManager' --nologo --headless --nofirststartwizard --norestore &
         shell: bash
-      - name: Set install system dependencies commands
-        run: |
-          if [ -n "${{ inputs.system_dependencies }}" ]; then
-            echo INSTALL_SYSTEM_DEPENDENCIES_PRE="sudo apt-get update" >> $GITHUB_ENV
-            echo INSTALL_SYSTEM_DEPENDENCIES="sudo apt-get install -y ${{ inputs.system_dependencies }}" >> $GITHUB_ENV
-          fi
       - name: Run tests
         uses: IMIO/gha/plone-package-test-notify@v5
         env:
@@ -89,11 +78,11 @@ jobs:
           BUILDOUT_OPTIONS: ${{ inputs.buildout_options }}
           CACHE_KEY: ${{ runner.os }}-build-${{ env.cache-name }}-${{ inputs.python_version }}
           INSTALL_DEPENDENCIES_COMMANDS: |
-            ${{ env.INSTALL_SYSTEM_DEPENDENCIES_PRE || '' }}
-            ${{ env.INSTALL_SYSTEM_DEPENDENCIES || '' }}
             uv venv --python ${{ inputs.python_version }} --managed-python
             uv pip install -r ${{ inputs.requirements_file }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           TEST_COMMAND: ${{ inputs.test_command }}
-          UV_VERSION: ${{ inputs.uv_version }}
+      - name: Upload coverage report to coveralls
+        if: ${{ inputs.upload_to_coveralls }}
+        uses: coverallsapp/github-action@v2

@@ -2,9 +2,20 @@
 
 This repository hosts a set of custom reusable github actions workflows.
 
+## Available workflows
+
+- [package-test-uv.yml](#package-test-uvyml)
+- [promote-staging-to-production.yml](#promote-staging-to-productionyml)
+- [package-test-legacy.yml](#package-test-legacyyml)
+- [package-test-coverage.yml](#package-test-coverageyml)
+
+
 ## package-test-uv.yml
 
-Test a Plone package. Test environment is bootstrapped using uv and buildout.
+Test a Plone package. Test environment is bootstrapped using [uv](https://github.com/astral-sh/uv) and [buildout](https://github.com/buildout/buildout).
+
+> **Note:** Supported Python versions are listed on [uv documentation](https://docs.astral.sh/uv/reference/policies/platforms/#python-support). If you need to use a deprecated Python 3 version, you can pin an older uv version using the `uv_version` input. For Python 2 support, use the `package-test-legacy.yml` workflow instead.
+
 
 ### Inputs
 
@@ -13,14 +24,14 @@ Test a Plone package. Test environment is bootstrapped using uv and buildout.
 | buildout_command      | string   | No      | .venv/bin/buildout   | Command to run buildout                                                     |
 | buildout_config_file  | string   | No      | buildout.cfg         | Buildout configuration file to use                                          |
 | buildout_options      | string   | No       | (empty)              | Additional options to pass to buildout                                      |
-| continue_on_error     | boolean  | No       | false                | Continue on error                                                           |
-| matrix_experimental   | boolean  | No       | false                | Enable experimental matrix                                                  |
-| plone_version         | string   | No       | 6.1                  | Plone version to use                                                        |
+| continue_on_error     | boolean  | No       | true                | Continue on error                                                           |
 | python_version        | string   | No       | 3.13                 | Python version to use                                                       |
 | requirements_file     | string   | No      | requirements.txt     | Requirements file to use for dependency installation                        |
-| runner_label          | string   | No      | (none)               | GitHub Actions runner label to use                                          |
-| soffice               | boolean  | No       | false                 | Launch soffice (LibreOffice in service mode)                                |
-| test_command          | string   | No       | bin/test             | Command to run tests                                                        |
+| runner_label          | string   | No      | ubuntu-latest        | GitHub Actions runner label to use                                          |
+| soffice               | boolean  | No       | false                | Launch soffice (LibreOffice in service mode)                                |
+| system_dependencies   | string   | No       | (empty)              | System dependencies to install before running tests                         |
+| test_command          | string   | No      | bin/test             | Command to run tests                                                        |
+| uv_version            | string   | No       | 0.7.20               | Version of uv to use                                                        |
 
 **Secrets**:
 
@@ -31,11 +42,13 @@ Test a Plone package. Test environment is bootstrapped using uv and buildout.
 
 ### Example of usage
 
-#### One python version, one plone version
+#### Simple use-case (one version)
+
+> **Tip:** If your repository follows the default values for all workflow inputs, you only need this single line to run the tests.
 
 ```yaml
 test:
-    uses: IMIO/gha-workflows/.github/workflows/package-test-uv.yml@main
+    uses: IMIO/gha-workflows/.github/workflows/package-test-uv.yml@v1
 ```
 
 #### Multiple versions (github actions matrixes)
@@ -46,7 +59,7 @@ In the below example, we run tests on 2 python versions and 2 plone versions (4 
 
 ```yaml
 test:
-    uses: IMIO/gha-workflows/.github/workflows/package-test-uv.yml@main
+    uses: IMIO/gha-workflows/.github/workflows/package-test-uv.yml@v1
     strategy:
       matrix:
         python_version: ['3.10', '3.13']
@@ -100,7 +113,7 @@ It also runs a Rundeck job to deploy the image to the specified node.
 ```yaml
 jobs:
   promote-staging-to-production:
-    uses: IMIO/gha-workflows/.github/workflows/promote-staging-to-production.yml@main
+    uses: IMIO/gha-workflows/.github/workflows/promote-staging-to-production.yml@v1
     with:
       github_environment: production
       image_name: myapp
@@ -117,4 +130,74 @@ jobs:
       registry_password: ${{ secrets.HARBOR_PASSWORD }}
       rundeck_url: ${{ secrets.RUNDECK_URL }}
       rundeck_token: ${{ secrets.RUNDECK_TOKEN }}
+```
+
+## package-test-legacy.yml
+
+Test a Plone package using legacy buildout and Python versions.
+
+### Inputs
+
+| Name                  | Type     | Required | Default              | Description                                                                 |
+|-----------------------|----------|----------|----------------------|-----------------------------------------------------------------------------|
+| buildout_command      | string   | No       | bin/buildout         | Command to run buildout                                                     |
+| buildout_config_file  | string   | No       | buildout.cfg         | Buildout configuration file to use                                          |
+| continue_on_error     | boolean  | No       | false                | Continue on error                                                           |
+| matrix_experimental   | boolean  | No       | false                | Enable experimental matrix                                                  |
+| plone_version         | string   | No       | 4.3                  | Plone version to use                                                        |
+| python_version        | string   | No       | 2.7                  | Python version to use                                                       |
+| requirements_file     | string   | No       | requirements.txt     | Requirements file to use for dependency installation                        |
+| runner_label          | string   | No       | ubuntu-latest        | GitHub Actions runner label to use                                          |
+| soffice               | boolean  | No       | false                | Launch soffice (LibreOffice in service mode)                                |
+| test_command          | string   | No       | bin/test             | Command to run tests                                                        |
+
+**Secrets**:
+
+| Name                    | Required | Description                                                                 |
+|-------------------------|----------|-----------------------------------------------------------------------------|
+| mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
+
+### Example of usage
+
+```yaml
+test:
+    uses: IMIO/gha-workflows/.github/workflows/package-test-legacy.yml@v1
+    with:
+      buildout_config_file: buildout.cfg
+      python_version: 2.7
+      requirements_file: requirements.txt
+```
+
+## package-test-coverage.yml
+
+Test a Plone package and generate a coverage report. Test environment is bootstrapped using [uv](https://github.com/astral-sh/uv) and [buildout](https://github.com/buildout/buildout). Optionally uploads the coverage report to Coveralls.
+
+### Inputs
+
+| Name                  | Type     | Required | Default                                                      | Description                                                      |
+|-----------------------|----------|----------|--------------------------------------------------------------|------------------------------------------------------------------|
+| buildout_command      | string   | No       | .venv/bin/buildout                                           | Command to run buildout                                           |
+| buildout_config_file  | string   | No       | buildout.cfg                                                 | Buildout configuration file to use                                |
+| buildout_options      | string   | No       | (empty)                                                      | Additional options to pass to buildout                            |
+| continue_on_error     | boolean  | No       | false                                                        | Continue on error                                                 |
+| plone_version         | string   | No       | 6.1                                                          | Plone version to use                                              |
+| requirements_file     | string   | No       | requirements.txt                                              | Requirements file to use for dependency installation              |
+| runner_label          | string   | No       | ubuntu-latest                                                 | GitHub Actions runner label to use                                |
+| soffice               | boolean  | No       | false                                                        | Launch soffice (LibreOffice in service mode)                      |
+| test_command          | string   | No       | uvx coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY   | Command to run tests with coverage                                |
+| upload_to_coveralls   | boolean  | No       | false                                                        | Upload coverage report to Coveralls                               |
+
+**Secrets**:
+
+| Name                    | Required | Description                                                                 |
+|-------------------------|----------|-----------------------------------------------------------------------------|
+| mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
+
+### Example of usage
+
+```yaml
+test:
+    uses: IMIO/gha-workflows/.github/workflows/package-test-coverage.yml@v1
+    with:
+      upload_to_coveralls: true
 ```
