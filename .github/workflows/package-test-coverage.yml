@@ -23,16 +23,6 @@ on:
         type: boolean
         required: false
         default: false
-      matrix_experimental:
-        description: 'Experimental matrix'
-        type: boolean
-        required: false
-        default: false
-      plone_version:
-        description: 'Plone version'
-        type: string
-        required: false
-        default: "6.1"
       python_version:
         description: 'Python version'
         required: false
