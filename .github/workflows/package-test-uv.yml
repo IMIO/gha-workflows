@@ -63,24 +63,29 @@ on:
           description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
           required: false
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ${{ inputs.runner_label }}
     continue-on-error: ${{ inputs.continue_on_error }}
-    if: ${{ !github.event_name == 'pull_request' || !github.event.pull_request.draft }}
+    timeout-minutes: 180
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     steps:
       - name: Launch soffice
         if: ${{ inputs.soffice }}
         run: soffice '--accept=socket,host=0.0.0.0,port=2002;urp;StarOffice.ServiceManager' --nologo --headless --nofirststartwizard --norestore &
         shell: bash
       - name: Set install system dependencies commands
+        env:
+          SYSTEM_DEPS: ${{ inputs.system_dependencies }}
         run: |
-          if [ -n "${{ inputs.system_dependencies }}" ]; then
+          if [ -n "$SYSTEM_DEPS" ]; then
             echo INSTALL_SYSTEM_DEPENDENCIES_PRE="sudo apt-get update" >> $GITHUB_ENV
-            echo INSTALL_SYSTEM_DEPENDENCIES="sudo apt-get install -y ${{ inputs.system_dependencies }}" >> $GITHUB_ENV
+            printf 'INSTALL_SYSTEM_DEPENDENCIES=sudo apt-get install -y %s\n' "$SYSTEM_DEPS" >> $GITHUB_ENV
           fi
       - name: Run tests
-        uses: IMIO/gha/plone-package-test-notify@v5
+        uses: IMIO/gha/plone-package-test-notify@v6
         env:
           cache-name: cache-eggs
         with:
