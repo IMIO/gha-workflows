@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.1.0] - 2026-04-14
+### Changed
+Security hardening
+
+
 ## [v1.0.0] - 2025-07-17
 ### Added
 - package-test-coverage.yml

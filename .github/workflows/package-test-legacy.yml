@@ -58,11 +58,14 @@ on:
           description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
           required: false
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ${{ inputs.runner_label }}
     continue-on-error: ${{ inputs.continue_on_error }}
-    if: ${{ !github.event_name == 'pull_request' || !github.event.pull_request.draft }}
+    timeout-minutes: 180
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     steps:
       - name: Launch soffice
         if: ${{ inputs.soffice }}
