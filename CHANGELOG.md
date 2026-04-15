@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.1.1] - 2026-04-15
+### Fixed
+- package-test-coverage.yml
+    - generate coverage xml report
+
 ## [v1.1.0] - 2026-04-14
 ### Changed
 Security hardening
