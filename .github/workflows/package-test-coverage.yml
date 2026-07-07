@@ -47,7 +47,7 @@ on:
         description: 'Test command'
         required: false
         type: string
-        default: 'uvx coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
+        default: '.venv/bin/coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
       upload_to_coveralls:
         description: 'Upload coverage report to coveralls'
         type: boolean
@@ -83,12 +83,13 @@ jobs:
           INSTALL_DEPENDENCIES_COMMANDS: |
             uv venv --python ${{ inputs.python_version }} --managed-python
             uv pip install -r ${{ inputs.requirements_file }}
+            uv pip install coverage
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           TEST_COMMAND: ${{ inputs.test_command }}
       - name: Generate coverage XML report
         if: ${{ inputs.upload_to_coveralls }}
-        run: uvx coverage xml -i
+        run: .venv/bin/coverage xml -i
         shell: bash
       - name: Upload coverage report to coveralls
         if: ${{ inputs.upload_to_coveralls }}

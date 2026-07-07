@@ -1,5 +1,10 @@
 # Changelog
 
+## [unreleased] - 2026-07-07
+### Fixed
+- package-test-coverage.yml
+    - install coverage inside venv
+
 ## [v1.1.1] - 2026-04-15
 ### Fixed
 - package-test-coverage.yml
