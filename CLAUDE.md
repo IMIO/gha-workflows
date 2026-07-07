@@ -21,6 +21,7 @@ All workflows use `on: workflow_call` and are located in `.github/workflows/`:
 | `package-test-uv.yml` | Modern Plone package testing via `uv` (default Python 3.13) |
 | `package-test-legacy.yml` | Legacy Plone package testing (default Python 2.7, Plone 4.3) |
 | `package-test-coverage.yml` | Plone testing with coverage reporting (optional Coveralls) |
+| `package-full-test.yml` | Full pipeline: code analysis + test matrix + coverage (nests the two workflows above) |
 | `promote-staging-to-production.yml` | Docker image promotion staging→prod + Rundeck deployment |
 | `release.yml` | Auto-creates GitHub releases from pushed `v*` tags using CHANGELOG.md |
 

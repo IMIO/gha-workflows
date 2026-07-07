@@ -1,0 +1,145 @@
+name: Full package test
+
+on:
+  workflow_call:
+    inputs:
+      base_dir:
+        description: 'Base directory for the code analysis check'
+        type: string
+        required: false
+        default: "src"
+      buildout_command:
+        description: 'Command to run buildout'
+        type: string
+        required: false
+        default: ".venv/bin/buildout"
+      buildout_config_file:
+        description: 'Buildout configuration file'
+        type: string
+        required: false
+        default: "buildout.cfg"
+      buildout_options:
+        description: 'Options to pass to buildout'
+        type: string
+        required: false
+        default: ""
+      check:
+        description: 'Code analysis check to run'
+        type: string
+        required: false
+        default: "black"
+      check_path:
+        description: 'Package path(s) to run the code analysis check on'
+        type: string
+        required: true
+      continue_on_error:
+        description: 'Continue on error'
+        type: boolean
+        required: false
+        default: true
+      coverage_python_version:
+        description: 'Python version for the coverage job'
+        type: string
+        required: false
+        default: "3.13"
+      coverage_test_command:
+        description: 'Test command for the coverage job'
+        type: string
+        required: false
+        default: '.venv/bin/coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
+      python_versions:
+        description: 'Python versions for the test matrix, as a JSON array'
+        type: string
+        required: false
+        default: '["3.13"]'
+      requirements_file:
+        description: 'Requirements file'
+        type: string
+        required: false
+        default: "requirements.txt"
+      runner_label:
+        description: 'Runner label'
+        type: string
+        required: false
+        default: "ubuntu-latest"
+      soffice:
+        description: 'Launch soffice'
+        required: false
+        type: boolean
+        default: false
+      system_dependencies:
+        description: 'System dependencies to install'
+        type: string
+        required: false
+        default: ""
+      test_command:
+        description: 'Test command'
+        required: false
+        type: string
+        default: 'bin/test'
+      upload_to_coveralls:
+        description: 'Upload coverage report to coveralls'
+        type: boolean
+        required: false
+        default: false
+      uv_version:
+        description: 'uv version'
+        type: string
+        required: false
+        default: "0.7.20"
+    secrets:
+        mattermost_webhook_url:
+          description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
+          required: false
+
+permissions: {}
+
+jobs:
+  code-analysis:
+    runs-on: ${{ inputs.runner_label }}
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v4
+      - name: Run check
+        uses: IMIO/gha/code-analysis-notify@v6
+        with:
+          BASE_DIR: ${{ inputs.base_dir }}
+          CHECK: ${{ inputs.check }}
+          PATH: ${{ inputs.check_path }}
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
+
+  test:
+    strategy:
+      matrix:
+        python_version: ${{ fromJSON(inputs.python_versions) }}
+    uses: ./.github/workflows/package-test-uv.yml
+    with:
+      buildout_command: ${{ inputs.buildout_command }}
+      buildout_config_file: ${{ inputs.buildout_config_file }}
+      buildout_options: ${{ inputs.buildout_options }}
+      continue_on_error: ${{ inputs.continue_on_error }}
+      python_version: ${{ matrix.python_version }}
+      requirements_file: ${{ inputs.requirements_file }}
+      runner_label: ${{ inputs.runner_label }}
+      soffice: ${{ inputs.soffice }}
+      system_dependencies: ${{ inputs.system_dependencies }}
+      test_command: ${{ inputs.test_command }}
+      uv_version: ${{ inputs.uv_version }}
+    secrets:
+      mattermost_webhook_url: ${{ secrets.mattermost_webhook_url }}
+
+  coverage:
+    uses: ./.github/workflows/package-test-coverage.yml
+    with:
+      buildout_command: ${{ inputs.buildout_command }}
+      buildout_config_file: ${{ inputs.buildout_config_file }}
+      buildout_options: ${{ inputs.buildout_options }}
+      python_version: ${{ inputs.coverage_python_version }}
+      requirements_file: ${{ inputs.requirements_file }}
+      runner_label: ${{ inputs.runner_label }}
+      soffice: ${{ inputs.soffice }}
+      test_command: ${{ inputs.coverage_test_command }}
+      upload_to_coveralls: ${{ inputs.upload_to_coveralls }}
+    secrets:
+      mattermost_webhook_url: ${{ secrets.mattermost_webhook_url }}

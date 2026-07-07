@@ -8,6 +8,7 @@ This repository hosts a set of custom reusable github actions workflows.
 - [promote-staging-to-production.yml](#promote-staging-to-productionyml)
 - [package-test-legacy.yml](#package-test-legacyyml)
 - [package-test-coverage.yml](#package-test-coverageyml)
+- [package-full-test.yml](#package-full-testyml)
 
 
 ## package-test-uv.yml
@@ -199,5 +200,69 @@ Test a Plone package and generate a coverage report. Test environment is bootstr
 test:
     uses: IMIO/gha-workflows/.github/workflows/package-test-coverage.yml@v1
     with:
+      upload_to_coveralls: true
+```
+
+## package-full-test.yml
+
+Full test pipeline for a Plone package, combining three parallel jobs in a single reusable workflow:
+
+1. **code-analysis** — runs a code analysis check (black by default) via `IMIO/gha/code-analysis-notify@v6`
+2. **test** — runs [package-test-uv.yml](#package-test-uvyml) on each Python version of the `python_versions` matrix
+3. **coverage** — runs [package-test-coverage.yml](#package-test-coverageyml)
+
+> **Note:** Since the Python matrix lives inside this workflow, pass the versions as a JSON array string via the `python_versions` input (e.g. `'["3.12", "3.13"]'`) instead of a `strategy.matrix` on the calling job.
+
+### Inputs
+
+| Name                    | Type     | Required | Default                                                          | Description                                                      |
+|-------------------------|----------|----------|------------------------------------------------------------------|------------------------------------------------------------------|
+| base_dir                | string   | No       | src                                                              | Base directory for the code analysis check                       |
+| buildout_command        | string   | No       | .venv/bin/buildout                                               | Command to run buildout                                          |
+| buildout_config_file    | string   | No       | buildout.cfg                                                     | Buildout configuration file to use                               |
+| buildout_options        | string   | No       | (empty)                                                          | Additional options to pass to buildout                           |
+| check                   | string   | No       | black                                                            | Code analysis check to run                                       |
+| check_path              | string   | Yes      | —                                                                | Package path(s) to run the code analysis check on                |
+| continue_on_error       | boolean  | No       | true                                                             | Continue on error (test job)                                     |
+| coverage_python_version | string   | No       | 3.13                                                             | Python version for the coverage job                              |
+| coverage_test_command   | string   | No       | .venv/bin/coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY | Test command for the coverage job                                |
+| python_versions         | string   | No       | ["3.13"]                                                         | Python versions for the test matrix, as a JSON array             |
+| requirements_file       | string   | No       | requirements.txt                                                 | Requirements file to use for dependency installation             |
+| runner_label            | string   | No       | ubuntu-latest                                                    | GitHub Actions runner label to use                               |
+| soffice                 | boolean  | No       | false                                                            | Launch soffice (LibreOffice in service mode)                     |
+| system_dependencies     | string   | No       | (empty)                                                          | System dependencies to install before running tests              |
+| test_command            | string   | No       | bin/test                                                         | Command to run tests                                             |
+| upload_to_coveralls     | boolean  | No       | false                                                            | Upload coverage report to Coveralls                              |
+| uv_version              | string   | No       | 0.7.20                                                           | Version of uv to use                                             |
+
+**Secrets**:
+
+| Name                    | Required | Description                                                                 |
+|-------------------------|----------|-----------------------------------------------------------------------------|
+| mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
+
+### Example of usage
+
+```yaml
+name: Tests
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  full-test:
+    uses: IMIO/gha-workflows/.github/workflows/package-full-test.yml@v1
+    secrets:
+      mattermost_webhook_url: ${{ secrets.SMARTWEB_MATTERMOST_WEBHOOK_URL }}
+    with:
+      check_path: |
+        imio/events/core
+      buildout_config_file: test_plone6.cfg
+      python_versions: '["3.12", "3.13"]'
+      runner_label: gha-runners-smartweb
+      test_command: TZ=UTC bin/test
       upload_to_coveralls: true
 ```
