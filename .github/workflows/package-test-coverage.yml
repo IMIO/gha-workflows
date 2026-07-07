@@ -61,7 +61,7 @@ on:
 permissions: {}
 
 jobs:
-  test:
+  coverage:
     runs-on: ${{ inputs.runner_label }}
     continue-on-error: ${{ inputs.continue_on_error }}
     timeout-minutes: 180

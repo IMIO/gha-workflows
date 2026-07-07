@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.2.0] - unreleased
+## [v1.2.0] - 2026-07-07
 ### Added
 - package-full-test.yml
     - full pipeline combining code analysis, test matrix (package-test-uv.yml) and coverage (package-test-coverage.yml)
