@@ -46,7 +46,7 @@ on:
         description: 'Test command for the coverage job'
         type: string
         required: false
-        default: '.venv/bin/coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
+        default: 'TZ=UTC .venv/bin/coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
       python_versions:
         description: 'Python versions for the test matrix, as a JSON array'
         type: string
@@ -76,7 +76,7 @@ on:
         description: 'Test command'
         required: false
         type: string
-        default: 'bin/test'
+        default: 'TZ=UTC bin/test'
       upload_to_coveralls:
         description: 'Upload coverage report to coveralls'
         type: boolean
