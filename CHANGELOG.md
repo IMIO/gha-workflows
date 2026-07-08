@@ -1,5 +1,10 @@
 # Changelog
 
+## [v1.2.1] - 2026-07-08
+### Fixed
+- package-test-coverage.yml, package-test-uv.yml
+    - UTC timezone by default
+
 ## [v1.2.0] - 2026-07-07
 ### Added
 - package-full-test.yml

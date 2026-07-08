@@ -47,7 +47,7 @@ on:
         description: 'Test command'
         required: false
         type: string
-        default: '.venv/bin/coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
+        default: 'TZ=UTC .venv/bin/coverage run bin/test -t !robot >> $GITHUB_STEP_SUMMARY'
       upload_to_coveralls:
         description: 'Upload coverage report to coveralls'
         type: boolean
@@ -89,7 +89,7 @@ jobs:
           TEST_COMMAND: ${{ inputs.test_command }}
       - name: Generate coverage XML report
         if: ${{ inputs.upload_to_coveralls }}
-        run: .venv/bin/coverage xml -i
+        run: TZ=UTC .venv/bin/coverage xml -i
         shell: bash
       - name: Upload coverage report to coveralls
         if: ${{ inputs.upload_to_coveralls }}
