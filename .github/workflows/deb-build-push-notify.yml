@@ -3,7 +3,7 @@ name: Deb build push notify
 # pushes it to the selected apt repositories and notifies via Mattermost.
 #
 # Secrets are all optional: when not passed explicitly, they fall back to the
-# IMIO naming convention, so a caller using "secrets: inherit" has nothing to wire.
+# iMio naming convention, so a caller using "secrets: inherit" has nothing to wire.
 on:
   workflow_call:
     inputs:
@@ -37,6 +37,11 @@ on:
         type: string
         required: false
         default: 'gha-runners-teleservices'
+      test_branch:
+        description: 'Branch publishing to the test apt repositories (NEXUS_<DISTRIBUTION>_TEST_URL) instead of the production ones. Set to an empty string to always target production.'
+        type: string
+        required: false
+        default: 'dev-test'
     secrets:
       mattermost_webhook_url:
         description: 'Webhook URL for Mattermost notifications. Falls back to inherited MATTERMOST_WEBHOOK_URL, then TELESERVICES_MATTERMOST_WEBHOOK_URL. If none is set, notifications are not sent.'
@@ -48,10 +53,10 @@ on:
         description: 'Password for the apt repository. Falls back to inherited NEXUS_PASSWORD.'
         required: false
       repository_url_bookworm:
-        description: 'URL of the bookworm apt repository. Falls back to inherited NEXUS_BOOKWORM_URL.'
+        description: 'URL of the bookworm apt repository, used on every branch when set. Otherwise falls back to inherited NEXUS_BOOKWORM_TEST_URL on test_branch, NEXUS_BOOKWORM_URL elsewhere.'
         required: false
       repository_url_trixie:
-        description: 'URL of the trixie apt repository. Falls back to inherited NEXUS_TRIXIE_URL.'
+        description: 'URL of the trixie apt repository, used on every branch when set. Otherwise falls back to inherited NEXUS_TRIXIE_TEST_URL on test_branch, NEXUS_TRIXIE_URL elsewhere.'
         required: false
       signer_key:
         description: 'Key to sign the deb package (base64 encoded). Falls back to inherited DEB_SIGNER_KEY.'
@@ -73,12 +78,20 @@ jobs:
       matrix:
         distribution: ${{ fromJSON(inputs.distributions) }}
     env:
-      # Each branch is gated on its own distribution so that a missing URL resolves
-      # to an empty string instead of falling through to the other distribution's
-      # URL. The "Check apt repository URL" step below turns that into a clear error.
+      # Target repository depends on both the distribution and the branch: the
+      # test_branch publishes to NEXUS_<DISTRIBUTION>_TEST_URL, every other ref to
+      # NEXUS_<DISTRIBUTION>_URL.
+      #
+      # Every arm is gated on BOTH axes so the arms are mutually exclusive. That
+      # matters: an arm gated only on the branch would let a test build with an
+      # unset *_TEST_URL fall through and publish to production. Here a missing URL
+      # resolves to an empty string and "Check apt repository URL" fails the job.
+      RESOLVED_REPOSITORY_TARGET: ${{ github.ref_name == inputs.test_branch && 'test' || 'production' }}
       RESOLVED_REPOSITORY_URL: >-
-        ${{ (matrix.distribution == 'bookworm' && (secrets.repository_url_bookworm || secrets.NEXUS_BOOKWORM_URL))
-        || (matrix.distribution == 'trixie' && (secrets.repository_url_trixie || secrets.NEXUS_TRIXIE_URL))
+        ${{ (matrix.distribution == 'bookworm' && github.ref_name == inputs.test_branch && (secrets.repository_url_bookworm || secrets.NEXUS_BOOKWORM_TEST_URL))
+        || (matrix.distribution == 'bookworm' && github.ref_name != inputs.test_branch && (secrets.repository_url_bookworm || secrets.NEXUS_BOOKWORM_URL))
+        || (matrix.distribution == 'trixie' && github.ref_name == inputs.test_branch && (secrets.repository_url_trixie || secrets.NEXUS_TRIXIE_TEST_URL))
+        || (matrix.distribution == 'trixie' && github.ref_name != inputs.test_branch && (secrets.repository_url_trixie || secrets.NEXUS_TRIXIE_URL))
         || '' }}
       RESOLVED_REPOSITORY_LOGIN: ${{ secrets.repository_login || secrets.NEXUS_LOGIN }}
       RESOLVED_REPOSITORY_PASSWORD: ${{ secrets.repository_password || secrets.NEXUS_PASSWORD }}
@@ -93,11 +106,18 @@ jobs:
         env:
           # distributions is caller supplied, so the value never reaches the script inline.
           DISTRIBUTION: ${{ matrix.distribution }}
+          BRANCH: ${{ github.ref_name }}
         run: |
+          if [ "$RESOLVED_REPOSITORY_TARGET" = 'test' ]; then
+            EXPECTED_SECRET="NEXUS_$(echo "$DISTRIBUTION" | tr '[:lower:]' '[:upper:]')_TEST_URL"
+          else
+            EXPECTED_SECRET="NEXUS_$(echo "$DISTRIBUTION" | tr '[:lower:]' '[:upper:]')_URL"
+          fi
           if [ -z "$RESOLVED_REPOSITORY_URL" ]; then
-            echo "::error::No apt repository URL for distribution '$DISTRIBUTION'. Pass repository_url_$DISTRIBUTION explicitly, or provide NEXUS_<DISTRIBUTION>_URL and use 'secrets: inherit'."
+            echo "::error::No $RESOLVED_REPOSITORY_TARGET apt repository URL for distribution '$DISTRIBUTION' on branch '$BRANCH'. Provide $EXPECTED_SECRET and use 'secrets: inherit', or pass repository_url_$DISTRIBUTION explicitly."
             exit 1
           fi
+          echo "::notice::Publishing $DISTRIBUTION to the $RESOLVED_REPOSITORY_TARGET apt repository (branch '$BRANCH')."
         shell: bash
       - name: Checkout
         uses: actions/checkout@v4

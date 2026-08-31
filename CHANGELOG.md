@@ -6,6 +6,7 @@
     - build, sign and push a deb package to the bookworm and/or trixie apt repository, with Mattermost notification
     - target distributions selected with the `distributions` input
     - all secrets optional: fall back to the iMio naming convention, so callers only need `secrets: inherit`
+    - branch aware target: `test_branch` (default `dev-test`) publishes to `NEXUS_<DISTRIBUTION>_TEST_URL`, other refs to `NEXUS_<DISTRIBUTION>_URL`
 
 ## [v1.2.2] - 2026-07-08
 ### Fixed

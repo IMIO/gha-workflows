@@ -276,7 +276,9 @@ The package version is derived from `setup.py` as `<version>-<timestamp>~<short 
 
 Target distributions are selected with the `distributions` input and built in parallel.
 
-**Every secret is optional**: when it is not passed explicitly, the workflow falls back to the IMIO naming convention. So a repository that follows that convention only needs `secrets: inherit` and nothing else.
+The target *repository* depends on the branch the workflow is called from: `test_branch` (`dev-test` by default) publishes to `NEXUS_<DISTRIBUTION>_TEST_URL`, every other ref to `NEXUS_<DISTRIBUTION>_URL`.
+
+**Every secret is optional**: when it is not passed explicitly, the workflow falls back to the iMio naming convention. So a repository that follows that convention only needs `secrets: inherit` and nothing else.
 
 ### Inputs
 
@@ -288,6 +290,7 @@ Target distributions are selected with the `distributions` input and built in pa
 | package_name          | string   | No       | (caller repository name)           | Name of the deb package                                                           |
 | package_version       | string   | No       | (derived from setup.py)            | Package version. If empty, derived as `<version>-<timestamp>~<short sha>`         |
 | runner_label          | string   | No       | gha-runners-teleservices           | Label for the GitHub runner to use                                                |
+| test_branch           | string   | No       | dev-test                           | Branch publishing to the test apt repositories instead of the production ones. Empty string to always target production. |
 
 > [!NOTE]
 > `package_install_path` defaults to the value used by the underlying action. Most teleservices packages need `/usr/lib` instead, so set it explicitly unless you really want the Python `dist-packages` directory.
@@ -301,8 +304,8 @@ None is required as such, but the workflow needs a repository URL, credentials a
 
 | Name                     | Inherited fallback                                         | Description                                                       |
 |--------------------------|------------------------------------------------------------|-------------------------------------------------------------------|
-| repository_url_bookworm  | `NEXUS_BOOKWORM_URL`                                       | URL of the bookworm apt repository                                |
-| repository_url_trixie    | `NEXUS_TRIXIE_URL`                                         | URL of the trixie apt repository                                  |
+| repository_url_bookworm  | `NEXUS_BOOKWORM_URL`, or `NEXUS_BOOKWORM_TEST_URL` on `test_branch`  | URL of the bookworm apt repository                      |
+| repository_url_trixie    | `NEXUS_TRIXIE_URL`, or `NEXUS_TRIXIE_TEST_URL` on `test_branch`      | URL of the trixie apt repository                        |
 | repository_login         | `NEXUS_LOGIN`                                              | Login for the apt repository                                      |
 | repository_password      | `NEXUS_PASSWORD`                                           | Password for the apt repository                                   |
 | signer_key               | `DEB_SIGNER_KEY`                                           | Key to sign the deb package (base64 encoded)                      |
@@ -313,7 +316,10 @@ None is required as such, but the workflow needs a repository URL, credentials a
 > The inherited fallbacks only work when the caller passes `secrets: inherit`. Without it, pass the secrets explicitly.
 
 > [!NOTE]
-> A distribution listed in `distributions` with no matching URL — neither explicit nor inherited — fails the job with an explicit error rather than pushing to the wrong repository.
+> A distribution listed in `distributions` with no matching URL — neither explicit nor inherited — fails the job with an explicit error rather than pushing to the wrong repository. In particular, running on `test_branch` without `NEXUS_<DISTRIBUTION>_TEST_URL` set fails; it never falls back to the production repository.
+
+> [!NOTE]
+> Only branches match `test_branch`: a tag push or any other ref targets the production repository. Set `test_branch: ''` to disable test targeting entirely. An explicitly passed `repository_url_<distribution>` secret wins on every branch — gate it in the caller if you need it to vary.
 
 ### Example of usage
 
@@ -346,7 +352,25 @@ jobs:
       package_install_path: '/usr/lib'
 ```
 
-Repository that does not follow the IMIO secret naming:
+Publishing test builds from a different branch than `dev-test`:
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  deb:
+    uses: IMIO/gha-workflows/.github/workflows/deb-build-push-notify.yml@v1
+    secrets: inherit
+    with:
+      test_branch: staging
+      package_install_path: '/usr/lib'
+```
+
+Repository that does not follow the iMio secret naming:
 
 ```yaml
 jobs:
