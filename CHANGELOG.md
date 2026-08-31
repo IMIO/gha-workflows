@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.3.0] - 2026-08-31
+### Added
+- deb-build-push-notify.yml
+    - build, sign and push a deb package to the bookworm and/or trixie apt repository, with Mattermost notification
+    - target distributions selected with the `distributions` input
+    - all secrets optional: fall back to the iMio naming convention, so callers only need `secrets: inherit`
+
 ## [v1.2.2] - 2026-07-08
 ### Fixed
 - package-full-test.yml

@@ -1,0 +1,129 @@
+name: Deb build push notify
+# This workflow builds a deb package from a setup.py project, signs it,
+# pushes it to the selected apt repositories and notifies via Mattermost.
+#
+# Secrets are all optional: when not passed explicitly, they fall back to the
+# IMIO naming convention, so a caller using "secrets: inherit" has nothing to wire.
+on:
+  workflow_call:
+    inputs:
+      distributions:
+        description: 'JSON array of target distributions. Supported values: bookworm, trixie.'
+        type: string
+        required: false
+        default: '["bookworm"]'
+      package_dependency:
+        description: 'Deb dependency of the built package'
+        type: string
+        required: false
+        default: 'passerelle'
+      package_install_path:
+        description: 'Path where the package content is installed'
+        type: string
+        required: false
+        default: '/usr/lib/python3/dist-packages'
+      package_name:
+        description: 'Name of the deb package. Defaults to the caller repository name.'
+        type: string
+        required: false
+        default: ''
+      package_version:
+        description: 'Package version. If empty, derived from setup.py as <version>-<timestamp>~<short sha>.'
+        type: string
+        required: false
+        default: ''
+      runner_label:
+        description: 'Label for the GitHub runner to use'
+        type: string
+        required: false
+        default: 'gha-runners-teleservices'
+    secrets:
+      mattermost_webhook_url:
+        description: 'Webhook URL for Mattermost notifications. Falls back to inherited MATTERMOST_WEBHOOK_URL, then TELESERVICES_MATTERMOST_WEBHOOK_URL. If none is set, notifications are not sent.'
+        required: false
+      repository_login:
+        description: 'Login for the apt repository. Falls back to inherited NEXUS_LOGIN.'
+        required: false
+      repository_password:
+        description: 'Password for the apt repository. Falls back to inherited NEXUS_PASSWORD.'
+        required: false
+      repository_url_bookworm:
+        description: 'URL of the bookworm apt repository. Falls back to inherited NEXUS_BOOKWORM_URL.'
+        required: false
+      repository_url_trixie:
+        description: 'URL of the trixie apt repository. Falls back to inherited NEXUS_TRIXIE_URL.'
+        required: false
+      signer_key:
+        description: 'Key to sign the deb package (base64 encoded). Falls back to inherited DEB_SIGNER_KEY.'
+        required: false
+      signer_key_passphrase:
+        description: 'Passphrase of the signing key. Falls back to inherited DEB_SIGNER_PASSPHRASE.'
+        required: false
+
+permissions: {}
+
+jobs:
+  deb:
+    runs-on: ${{ inputs.runner_label }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution: ${{ fromJSON(inputs.distributions) }}
+    env:
+      # Each branch is gated on its own distribution so that a missing URL resolves
+      # to an empty string instead of falling through to the other distribution's
+      # URL. The "Check apt repository URL" step below turns that into a clear error.
+      RESOLVED_REPOSITORY_URL: >-
+        ${{ (matrix.distribution == 'bookworm' && (secrets.repository_url_bookworm || secrets.NEXUS_BOOKWORM_URL))
+        || (matrix.distribution == 'trixie' && (secrets.repository_url_trixie || secrets.NEXUS_TRIXIE_URL))
+        || '' }}
+      RESOLVED_REPOSITORY_LOGIN: ${{ secrets.repository_login || secrets.NEXUS_LOGIN }}
+      RESOLVED_REPOSITORY_PASSWORD: ${{ secrets.repository_password || secrets.NEXUS_PASSWORD }}
+      RESOLVED_SIGNER_KEY: ${{ secrets.signer_key || secrets.DEB_SIGNER_KEY }}
+      RESOLVED_SIGNER_KEY_PASSPHRASE: ${{ secrets.signer_key_passphrase || secrets.DEB_SIGNER_PASSPHRASE }}
+      RESOLVED_MATTERMOST_WEBHOOK_URL: >-
+        ${{ secrets.mattermost_webhook_url
+        || secrets.MATTERMOST_WEBHOOK_URL
+        || secrets.TELESERVICES_MATTERMOST_WEBHOOK_URL }}
+    steps:
+      - name: Check apt repository URL
+        env:
+          # distributions is caller supplied, so the value never reaches the script inline.
+          DISTRIBUTION: ${{ matrix.distribution }}
+        run: |
+          if [ -z "$RESOLVED_REPOSITORY_URL" ]; then
+            echo "::error::No apt repository URL for distribution '$DISTRIBUTION'. Pass repository_url_$DISTRIBUTION explicitly, or provide NEXUS_<DISTRIBUTION>_URL and use 'secrets: inherit'."
+            exit 1
+          fi
+        shell: bash
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set package version variable
+        if: ${{ inputs.package_version == '' }}
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          SETUP_VERSION=$(grep "version =" setup.py | cut -d '"' -f 2)
+          if [ -z "$SETUP_VERSION" ]; then
+            echo "::error::Could not read the package version from setup.py"
+            exit 1
+          fi
+          VERSION=$(printf '%s-%s~%s' "$SETUP_VERSION" "$(date '+%Y%m%d%H%M%S')" "${COMMIT_SHA:0:7}" | tr -d '[:space:]')
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+        shell: bash
+      - name: Deb build push and notify (${{ matrix.distribution }})
+        uses: IMIO/gha/deb-build-push-notify@v6
+        with:
+          REPOSITORY_URL: ${{ env.RESOLVED_REPOSITORY_URL }}
+          REPOSITORY_LOGIN: ${{ env.RESOLVED_REPOSITORY_LOGIN }}
+          REPOSITORY_PASSWORD: ${{ env.RESOLVED_REPOSITORY_PASSWORD }}
+          PACKAGE_NAME: ${{ inputs.package_name || github.event.repository.name }}
+          PACKAGE_VERSION: ${{ inputs.package_version || env.VERSION }}
+          PACKAGE_INSTALL_PATH: ${{ inputs.package_install_path }}
+          PACKAGE_DEPENDENCY: ${{ inputs.package_dependency }}
+          SIGNER_KEY: ${{ env.RESOLVED_SIGNER_KEY }}
+          SIGNER_KEY_PASSPHRASE: ${{ env.RESOLVED_SIGNER_KEY_PASSPHRASE }}
+          MATTERMOST_WEBHOOK_URL: ${{ env.RESOLVED_MATTERMOST_WEBHOOK_URL }}
