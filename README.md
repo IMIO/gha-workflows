@@ -39,7 +39,16 @@ Test a Plone package. Test environment is bootstrapped using [uv](https://github
 
 | Name                    | Required | Description                                                                 |
 |-------------------------|----------|-----------------------------------------------------------------------------|
+| gh_token                | No       | Token used to authenticate git access to github.com (mr.developer sources)  |
 | mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
+
+> **Tip:** pass `gh_token` when your buildout pulls `mr.developer` sources. Without a token those
+> checkouts clone anonymously and GitHub intermittently answers with a `401`, which surfaces as
+> `fatal: could not read Username for 'https://github.com': No such device or address`. When the
+> secret is omitted the workflow falls back to the job's own `GITHUB_TOKEN`, which is enough for
+> public sources; supply a PAT or GitHub App token for private ones. The calling job needs at
+> least `contents: read`. The same applies to `package-test-coverage.yml` and
+> `package-full-test.yml`.
 
 
 ### Example of usage
@@ -193,6 +202,7 @@ Test a Plone package and generate a coverage report. Test environment is bootstr
 
 | Name                    | Required | Description                                                                 |
 |-------------------------|----------|-----------------------------------------------------------------------------|
+| gh_token                | No       | Token used to authenticate git access to github.com (mr.developer sources)  |
 | mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
 
 ### Example of usage
@@ -240,6 +250,7 @@ Full test pipeline for a Plone package, combining three parallel jobs in a singl
 
 | Name                    | Required | Description                                                                 |
 |-------------------------|----------|-----------------------------------------------------------------------------|
+| gh_token                | No       | Token used to authenticate git access to github.com (mr.developer sources)  |
 | mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
 
 ### Example of usage

@@ -88,11 +88,15 @@ on:
         required: false
         default: "0.7.20"
     secrets:
+        gh_token:
+          description: 'Token used to authenticate git access to github.com for mr.developer sources. Defaults to the job GITHUB_TOKEN; pass a PAT or GitHub App token for private sources'
+          required: false
         mattermost_webhook_url:
           description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
           required: false
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   code-analysis:
@@ -127,6 +131,7 @@ jobs:
       test_command: ${{ inputs.test_command }}
       uv_version: ${{ inputs.uv_version }}
     secrets:
+      gh_token: ${{ secrets.gh_token }}
       mattermost_webhook_url: ${{ secrets.mattermost_webhook_url }}
 
   coverage:
@@ -142,4 +147,5 @@ jobs:
       test_command: ${{ inputs.coverage_test_command }}
       upload_to_coveralls: ${{ inputs.upload_to_coveralls }}
     secrets:
+      gh_token: ${{ secrets.gh_token }}
       mattermost_webhook_url: ${{ secrets.mattermost_webhook_url }}
