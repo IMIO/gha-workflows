@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.4.0] - 2026-09-03
+### Added
+- package-test-uv.yml, package-test-coverage.yml, package-full-test.yml
+    - optional `gh_token` secret, forwarded to `plone-package-test-notify` as its new `GITHUB_TOKEN` input, so `mr.developer` source checkouts are authenticated instead of anonymous
+    - falls back to the job's own `GITHUB_TOKEN` when the secret is omitted, so public sources are covered without any caller change. A `workflow_call` secret cannot be named `github_token` (reserved), hence `gh_token`
+
+### Changed
+- package-test-uv.yml, package-test-coverage.yml, package-full-test.yml
+    - `permissions: contents: read` (was `{}`), required for the fallback `GITHUB_TOKEN` to authenticate git
+
 ## [v1.3.0] - 2026-08-31
 ### Added
 - deb-build-push-notify.yml
