@@ -46,19 +46,20 @@ Test a Plone package. Test environment is bootstrapped using [uv](https://github
 > checkouts clone anonymously and GitHub intermittently answers with a `401`, which surfaces as
 > `fatal: could not read Username for 'https://github.com': No such device or address`. When the
 > secret is omitted the workflow falls back to the job's own `GITHUB_TOKEN`, which is enough for
-> public sources; supply a PAT or GitHub App token for private ones. The calling job needs at
-> least `contents: read`. The same applies to `package-test-coverage.yml` and
-> `package-full-test.yml`.
+> public sources; supply a PAT or GitHub App token for private ones. The same applies to
+> `package-test-coverage.yml` and `package-full-test.yml`.
 
 
 ### Example of usage
 
 #### Simple use-case (one version)
 
-> **Tip:** If your repository follows the default values for all workflow inputs, you only need this single line to run the tests.
+> **Tip:** If your repository follows the default values for all workflow inputs, this is all you need to run the tests.
 
 ```yaml
 test:
+    permissions:
+      contents: read
     uses: IMIO/gha-workflows/.github/workflows/package-test-uv.yml@v1
 ```
 
@@ -70,6 +71,8 @@ In the below example, we run tests on 2 python versions and 2 plone versions (4 
 
 ```yaml
 test:
+    permissions:
+      contents: read
     uses: IMIO/gha-workflows/.github/workflows/package-test-uv.yml@v1
     strategy:
       matrix:
@@ -209,6 +212,8 @@ Test a Plone package and generate a coverage report. Test environment is bootstr
 
 ```yaml
 test:
+    permissions:
+      contents: read
     uses: IMIO/gha-workflows/.github/workflows/package-test-coverage.yml@v1
     with:
       upload_to_coveralls: true
@@ -266,6 +271,8 @@ on:
 
 jobs:
   full-test:
+    permissions:
+      contents: read
     uses: IMIO/gha-workflows/.github/workflows/package-full-test.yml@v1
     secrets:
       mattermost_webhook_url: ${{ secrets.SMARTWEB_MATTERMOST_WEBHOOK_URL }}
