@@ -89,7 +89,7 @@ jobs:
             printf 'INSTALL_SYSTEM_DEPENDENCIES=sudo apt-get install -y %s\n' "$SYSTEM_DEPS" >> $GITHUB_ENV
           fi
       - name: Run tests
-        uses: IMIO/gha/plone-package-test-notify@DEVOPS-427
+        uses: IMIO/gha/plone-package-test-notify@v8
         env:
           cache-name: cache-eggs
         with:
