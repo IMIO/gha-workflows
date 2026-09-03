@@ -54,11 +54,15 @@ on:
         type: string
         default: 'bin/test'
     secrets:
+        gh_token:
+          description: 'Token used to authenticate git access to github.com for mr.developer sources. Defaults to the job GITHUB_TOKEN; pass a PAT or GitHub App token for private sources'
+          required: false
         mattermost_webhook_url:
           description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
           required: false
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -71,6 +75,10 @@ jobs:
         if: ${{ inputs.soffice }}
         run: soffice '--accept=socket,host=0.0.0.0,port=2002;urp;StarOffice.ServiceManager' --nologo --headless --nofirststartwizard --norestore &
         shell: bash
+      - name: Setup git auth
+        uses: IMIO/gha/setup-git-auth@v8
+        with:
+          GITHUB_TOKEN: ${{ secrets.gh_token || secrets.GITHUB_TOKEN }}
       - name: Run tests
         uses: IMIO/gha/plone-package-test-notify@v4
         env:
@@ -82,3 +90,8 @@ jobs:
             sudo pip install -r ${{ inputs.requirements_file }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
           TEST_COMMAND: ${{ inputs.test_command }}
+      - name: Cleanup git auth
+        if: always()
+        uses: IMIO/gha/setup-git-auth@v8
+        with:
+          MODE: cleanup
