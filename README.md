@@ -47,7 +47,7 @@ Test a Plone package. Test environment is bootstrapped using [uv](https://github
 > `fatal: could not read Username for 'https://github.com': No such device or address`. When the
 > secret is omitted the workflow falls back to the job's own `GITHUB_TOKEN`, which is enough for
 > public sources; supply a PAT or GitHub App token for private ones. The same applies to
-> `package-test-coverage.yml` and `package-full-test.yml`.
+> `package-test-coverage.yml`, `package-full-test.yml` and `package-test-legacy.yml`.
 
 
 ### Example of usage
@@ -169,12 +169,15 @@ Test a Plone package using legacy buildout and Python versions.
 
 | Name                    | Required | Description                                                                 |
 |-------------------------|----------|-----------------------------------------------------------------------------|
+| gh_token                | No       | Token used to authenticate git access to github.com (mr.developer sources)  |
 | mattermost_webhook_url  | No       | Mattermost webhook URL for notifications (optional)                         |
 
 ### Example of usage
 
 ```yaml
 test:
+    permissions:
+      contents: read
     uses: IMIO/gha-workflows/.github/workflows/package-test-legacy.yml@v1
     with:
       buildout_config_file: buildout.cfg
