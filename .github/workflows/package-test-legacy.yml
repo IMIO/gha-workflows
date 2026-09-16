@@ -75,10 +75,6 @@ jobs:
         if: ${{ inputs.soffice }}
         run: soffice '--accept=socket,host=0.0.0.0,port=2002;urp;StarOffice.ServiceManager' --nologo --headless --nofirststartwizard --norestore &
         shell: bash
-      - name: Setup git auth
-        uses: IMIO/gha/setup-git-auth@v8
-        with:
-          GITHUB_TOKEN: ${{ secrets.gh_token || secrets.GITHUB_TOKEN }}
       - name: Run tests
         uses: IMIO/gha/plone-package-test-notify@v4
         env:
@@ -86,12 +82,8 @@ jobs:
         with:
           BUILDOUT_CONFIG_FILE: ${{ inputs.buildout_config_file }}
           CACHE_KEY: ${{ runner.os }}-build-${{ env.cache-name }}-${{ inputs.python_version }}
+          GITHUB_TOKEN: ${{ secrets.gh_token || secrets.GITHUB_TOKEN }}
           INSTALL_DEPENDENCIES_COMMANDS: |
             sudo pip install -r ${{ inputs.requirements_file }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
           TEST_COMMAND: ${{ inputs.test_command }}
-      - name: Cleanup git auth
-        if: always()
-        uses: IMIO/gha/setup-git-auth@v8
-        with:
-          MODE: cleanup

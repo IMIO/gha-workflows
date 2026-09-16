@@ -3,9 +3,7 @@
 ## [unreleased] - 2026-09-xx
 ### Changed
 - package-test-legacy.yml
-    - optional `gh_token` secret, used by a `setup-git-auth` step so `mr.developer` source checkouts are authenticated instead of anonymous
-    - falls back to the job's own `GITHUB_TOKEN` when the secret is omitted. The legacy `plone-package-test-notify@v4` action has no `GITHUB_TOKEN` input, so the workflow calls `IMIO/gha/setup-git-auth@v8` directly, before and after the test step
-
+    - optional `gh_token` secret so `mr.developer` source checkouts are authenticated instead of anonymous
 
 ## [v1.4.0] - 2026-09-03
 ### Added
