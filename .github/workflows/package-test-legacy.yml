@@ -18,6 +18,11 @@ on:
         type: boolean
         required: false
         default: false
+      environment_variables:
+        description: 'Environment variables to export before running the tests, one KEY=value per line'
+        type: string
+        required: false
+        default: ""
       matrix_experimental:
         description: 'Experimental matrix'
         type: boolean
@@ -74,6 +79,12 @@ jobs:
       - name: Launch soffice
         if: ${{ inputs.soffice }}
         run: soffice '--accept=socket,host=0.0.0.0,port=2002;urp;StarOffice.ServiceManager' --nologo --headless --nofirststartwizard --norestore &
+        shell: bash
+      - name: Set additional environment variables
+        if: ${{ inputs.environment_variables != '' }}
+        env:
+          EXTRA_ENV: ${{ inputs.environment_variables }}
+        run: printf '%s\n' "$EXTRA_ENV" >> "$GITHUB_ENV"
         shell: bash
       - name: Run tests
         uses: IMIO/gha/plone-package-test-notify@v4

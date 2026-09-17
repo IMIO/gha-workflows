@@ -157,6 +157,7 @@ Test a Plone package using legacy buildout and Python versions.
 | buildout_command      | string   | No       | bin/buildout         | Command to run buildout                                                     |
 | buildout_config_file  | string   | No       | buildout.cfg         | Buildout configuration file to use                                          |
 | continue_on_error     | boolean  | No       | false                | Continue on error                                                           |
+| environment_variables | string   | No       | (empty)              | Environment variables exported before the tests run, one `KEY=value` per line |
 | matrix_experimental   | boolean  | No       | false                | Enable experimental matrix                                                  |
 | plone_version         | string   | No       | 4.3                  | Plone version to use                                                        |
 | python_version        | string   | No       | 2.7                  | Python version to use                                                       |
@@ -184,6 +185,28 @@ test:
       python_version: 2.7
       requirements_file: requirements.txt
 ```
+
+#### Passing environment variables
+
+`environment_variables` takes **one `KEY=value` per line**. Use a YAML block scalar (`|`) so the
+newlines are preserved; each line is appended to `$GITHUB_ENV`, which makes the variable available
+to buildout and to `test_command`.
+
+```yaml
+test:
+    permissions:
+      contents: read
+    uses: IMIO/gha-workflows/.github/workflows/package-test-legacy.yml@v1
+    with:
+      environment_variables: |
+        PM_BRANCH_NAME=${{ inputs.branch_name || 'master' }}
+        OO_SERVER=localhost
+        OO_PORT=2002
+      test_command: bin/test
+```
+
+Do not quote the value (`KEY=value`, not `KEY="value"`) — the quotes would end up in the value.
+Values must be single-line; a value containing a newline is not supported.
 
 ## package-test-coverage.yml
 

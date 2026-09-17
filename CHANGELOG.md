@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased] - 2026-09-xx
+### Added
+- package-test-legacy.yml
+    - optional `environment_variables` input, exported to `$GITHUB_ENV` before the test step, so callers can pass arbitrary environment variables (e.g. `PM_BRANCH_NAME` read by `buildout.environ` in `Products.Meeting*` sources) to buildout and to the test command
+
+
 ## [v1.5.0] - 2026-09-17
 ### Changed
 - package-test-legacy.yml
