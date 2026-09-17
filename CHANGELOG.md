@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased] - 2026-09-xx
+## [v1.5.0] - 2026-09-17
 ### Changed
 - package-test-legacy.yml
     - optional `gh_token` secret so `mr.developer` source checkouts are authenticated instead of anonymous
