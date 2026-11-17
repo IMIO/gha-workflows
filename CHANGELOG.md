@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.7.0] - Unreleased
+### Added
+- plone-image-test.yml
+    - new reusable workflow: builds a Plone Docker image, boots it with `docker compose` and runs the smoke tests of `IMIO/gha/plone-image-test-notify` plus the repository's own tests. WEB-3639
+
+
 ## [v1.6.0] - 2026-09-17
 ### Added
 - package-test-legacy.yml

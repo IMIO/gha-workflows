@@ -24,6 +24,7 @@ All workflows use `on: workflow_call` and are located in `.github/workflows/`:
 | `package-full-test.yml` | Full pipeline: code analysis + test matrix + coverage (nests the two workflows above) |
 | `promote-staging-to-production.yml` | Docker image promotion staging→prod + Rundeck deployment |
 | `deb-build-push-notify.yml` | Builds/signs a deb from `setup.py`, pushes to the bookworm and/or trixie apt repository |
+| `plone-image-test.yml` | Builds a Plone Docker image, boots it with docker compose and runs smoke tests |
 | `release.yml` | Auto-creates GitHub releases from pushed `v*` tags using CHANGELOG.md |
 
 ## Architecture
@@ -35,6 +36,7 @@ These workflows delegate to shared IMIO actions (in the separate `IMIO/gha` repo
 - `IMIO/gha/tag-notify@v5` — Docker registry image tagging
 - `IMIO/gha/rundeck-notify@v5` — Rundeck job execution
 - `IMIO/gha/deb-build-push-notify@v6` — deb build, signing, upload and notification
+- `IMIO/gha/plone-image-test-notify@v8` — Plone image build, boot and smoke tests
 
 ### Common Patterns
 - All workflows accept a `mattermost_webhook_url` secret for failure notifications
