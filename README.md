@@ -10,6 +10,7 @@ This repository hosts a set of custom reusable github actions workflows.
 - [package-test-coverage.yml](#package-test-coverageyml)
 - [package-full-test.yml](#package-full-testyml)
 - [deb-build-push-notify.yml](#deb-build-push-notifyyml)
+- [plone-image-test.yml](#plone-image-testyml)
 
 
 ## package-test-uv.yml
@@ -430,4 +431,55 @@ jobs:
       signer_key: ${{ secrets.MY_SIGNER_KEY }}
       signer_key_passphrase: ${{ secrets.MY_SIGNER_PASSPHRASE }}
       mattermost_webhook_url: ${{ secrets.MY_MATTERMOST_WEBHOOK_URL }}
+```
+
+## plone-image-test.yml
+
+This workflow builds a Plone Docker image, boots it with `docker compose` and runs smoke tests against it, using [`IMIO/gha/plone-image-test-notify`](https://github.com/IMIO/gha#plone-image-test-notify). Run it on pull requests, and before the job that pushes the image (`needs:`), so a broken image is never pushed.
+
+The compose file (default `tests/docker-compose.test.yml`) builds the image from the repository and starts it with what it needs. It publishes container port `8080` (and `8081` for plone.observability health probes) on random host ports, and creates the site at startup. Repository-specific tests in `tests_path` run after the generic checks. The same tests run locally with `uvx`, see the action's README.
+
+Draft pull requests are skipped.
+
+### Inputs
+
+| Name           | Type    | Required | Default                       | Description                                                                 |
+|----------------|---------|----------|-------------------------------|-----------------------------------------------------------------------------|
+| addons         | string  | No       | ""                            | Comma-separated add-on ids that must be installed in the site               |
+| admin          | string  | No       | admin:admin                   | Admin credentials of the site under test, as user:password                  |
+| compose_file   | string  | No       | tests/docker-compose.test.yml | Compose file of the stack under test                                        |
+| log_allowlist  | string  | No       | ""                            | File of regexes, one per line: matching log records are not errors          |
+| runner_label   | string  | No       | ubuntu-latest                 | Label for the GitHub runner to use                                          |
+| service        | string  | No       | instance                      | Compose service running Plone                                               |
+| site_id        | string  | No       | Plone                         | Id of the Plone site created at startup                                     |
+| tests_path     | string  | No       | tests                         | Directory of repository-specific tests. Empty to run only the generic checks |
+| wait_timeout   | number  | No       | 600                           | Seconds to wait for the stack to become healthy                             |
+
+**Secrets**:
+
+| Name                    | Required | Description                                                     |
+|-------------------------|----------|-----------------------------------------------------------------|
+| mattermost_webhook_url  | No       | Webhook URL for Mattermost notifications                        |
+| registry_url            | No       | Registry to log in to before building, when the base image is private |
+| registry_username       | No       | Username for the registry                                       |
+| registry_password       | No       | Password for the registry                                       |
+
+### Example of usage
+
+```yaml
+jobs:
+  test:
+    uses: IMIO/gha-workflows/.github/workflows/plone-image-test.yml@v1
+    with:
+      addons: imio.smartweb.policy
+      log_allowlist: tests/log_allowlist.txt
+      runner_label: gha-runners-smartweb
+    secrets:
+      mattermost_webhook_url: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+      registry_url: ${{ secrets.HARBOR_URL }}
+      registry_username: ${{ secrets.HARBOR_USERNAME }}
+      registry_password: ${{ secrets.HARBOR_PASSWORD }}
+  build-push:
+    needs: test
+    # ...
 ```

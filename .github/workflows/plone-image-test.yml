@@ -1,0 +1,88 @@
+name: Test Plone image
+
+on:
+  workflow_call:
+    inputs:
+      addons:
+        description: 'Comma-separated add-on ids that must be installed in the site'
+        type: string
+        required: false
+        default: ""
+      admin:
+        description: 'Admin credentials of the site under test, as user:password'
+        type: string
+        required: false
+        default: "admin:admin"
+      compose_file:
+        description: 'Compose file of the stack under test'
+        type: string
+        required: false
+        default: "tests/docker-compose.test.yml"
+      log_allowlist:
+        description: 'File of regexes, one per line: matching log records are not reported as errors'
+        type: string
+        required: false
+        default: ""
+      runner_label:
+        description: 'Runner label'
+        type: string
+        required: false
+        default: "ubuntu-latest"
+      service:
+        description: 'Compose service running Plone'
+        type: string
+        required: false
+        default: "instance"
+      site_id:
+        description: 'Id of the Plone site created at startup'
+        type: string
+        required: false
+        default: "Plone"
+      tests_path:
+        description: 'Directory of repository-specific tests, run after the generic checks. Empty to run only the generic checks'
+        type: string
+        required: false
+        default: "tests"
+      wait_timeout:
+        description: 'Seconds to wait for the stack to become healthy'
+        type: number
+        required: false
+        default: 600
+    secrets:
+      mattermost_webhook_url:
+        description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
+        required: false
+      registry_url:
+        description: 'Registry to log in to before building, when the base image is private'
+        required: false
+      registry_username:
+        description: 'Username to log in to the registry'
+        required: false
+      registry_password:
+        description: 'Password to log in to the registry'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ inputs.runner_label }}
+    timeout-minutes: 60
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    steps:
+      - name: Test image
+        uses: IMIO/gha/plone-image-test-notify@v8
+        with:
+          ADDONS: ${{ inputs.addons }}
+          ADMIN: ${{ inputs.admin }}
+          COMPOSE_FILE: ${{ inputs.compose_file }}
+          LOG_ALLOWLIST: ${{ inputs.log_allowlist }}
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
+          REGISTRY_URL: ${{ secrets.registry_url }}
+          REGISTRY_USERNAME: ${{ secrets.registry_username }}
+          REGISTRY_PASSWORD: ${{ secrets.registry_password }}
+          SERVICE: ${{ inputs.service }}
+          SITE_ID: ${{ inputs.site_id }}
+          TESTS_PATH: ${{ inputs.tests_path }}
+          WAIT_TIMEOUT: ${{ inputs.wait_timeout }}
