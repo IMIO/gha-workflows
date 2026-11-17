@@ -72,7 +72,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     steps:
       - name: Test image
-        uses: IMIO/gha/plone-image-test-notify@WEB-3639
+        uses: IMIO/gha/plone-image-test-notify@v8
         with:
           ADDONS: ${{ inputs.addons }}
           ADMIN: ${{ inputs.admin }}
