@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.8.0] - 2026-11-19
+### Added
+- plone-image-test.yml
+    - optional `image_name` and `image_tag` inputs: test an image already pushed to `registry_url` instead of building it, so a workflow can build the image once, test it and retag it. Needs `IMIO/gha` v8.4.0. WEB-3639
+
+
 ## [v1.7.0] - 2026-11-17
 ### Added
 - plone-image-test.yml

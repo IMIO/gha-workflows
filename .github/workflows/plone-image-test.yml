@@ -18,6 +18,16 @@ on:
         type: string
         required: false
         default: "tests/docker-compose.test.yml"
+      image_name:
+        description: 'Image to test instead of building it, relative to registry_url (e.g. web/smartweb/mutual). Empty to build it with the compose file'
+        type: string
+        required: false
+        default: ""
+      image_tag:
+        description: 'Tag of image_name'
+        type: string
+        required: false
+        default: ""
       log_allowlist:
         description: 'File of regexes, one per line: matching log records are not reported as errors'
         type: string
@@ -53,7 +63,7 @@ on:
         description: 'Webhook URL to send notifications on Mattermost, if not provided, notifications will not be sent'
         required: false
       registry_url:
-        description: 'Registry to log in to before building, when the base image is private'
+        description: 'Registry to log in to: to pull image_name, or before building when the base image is private'
         required: false
       registry_username:
         description: 'Username to log in to the registry'
@@ -77,6 +87,8 @@ jobs:
           ADDONS: ${{ inputs.addons }}
           ADMIN: ${{ inputs.admin }}
           COMPOSE_FILE: ${{ inputs.compose_file }}
+          IMAGE_NAME: ${{ inputs.image_name }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
           LOG_ALLOWLIST: ${{ inputs.log_allowlist }}
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost_webhook_url }}
           REGISTRY_URL: ${{ secrets.registry_url }}

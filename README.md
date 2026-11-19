@@ -437,6 +437,8 @@ jobs:
 
 This workflow builds a Plone Docker image, boots it with `docker compose` and runs smoke tests against it, using [`IMIO/gha/plone-image-test-notify`](https://github.com/IMIO/gha#plone-image-test-notify). Run it on pull requests, and before the job that pushes the image (`needs:`), so a broken image is never pushed.
 
+To avoid building the image twice, push it once with an immutable tag, test it by passing `image_name` and `image_tag` (it is then pulled from `registry_url`, not built), and only then add the deployment tags with [`IMIO/gha/tag-notify`](https://github.com/IMIO/gha#tag-notify). The image deployed is then the one tested.
+
 The compose file (default `tests/docker-compose.test.yml`) builds the image from the repository and starts it with what it needs. It publishes container port `8080` (and `8081` for plone.observability health probes) on random host ports, and creates the site at startup. Repository-specific tests in `tests_path` run after the generic checks. The same tests run locally with `uvx`, see the action's README.
 
 Draft pull requests are skipped.
@@ -448,6 +450,8 @@ Draft pull requests are skipped.
 | addons         | string  | No       | ""                            | Comma-separated add-on ids that must be installed in the site               |
 | admin          | string  | No       | admin:admin                   | Admin credentials of the site under test, as user:password                  |
 | compose_file   | string  | No       | tests/docker-compose.test.yml | Compose file of the stack under test                                        |
+| image_name     | string  | No       | ""                            | Image to test instead of building it, relative to `registry_url`. Empty to build it with the compose file |
+| image_tag      | string  | No       | ""                            | Tag of `image_name`                                                         |
 | log_allowlist  | string  | No       | ""                            | File of regexes, one per line: matching log records are not errors          |
 | runner_label   | string  | No       | ubuntu-latest                 | Label for the GitHub runner to use                                          |
 | service        | string  | No       | instance                      | Compose service running Plone                                               |
@@ -460,7 +464,7 @@ Draft pull requests are skipped.
 | Name                    | Required | Description                                                     |
 |-------------------------|----------|-----------------------------------------------------------------|
 | mattermost_webhook_url  | No       | Webhook URL for Mattermost notifications                        |
-| registry_url            | No       | Registry to log in to before building, when the base image is private |
+| registry_url            | No       | Registry to log in to: to pull `image_name`, or before building when the base image is private |
 | registry_username       | No       | Username for the registry                                       |
 | registry_password       | No       | Password for the registry                                       |
 
